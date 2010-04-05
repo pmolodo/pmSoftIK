@@ -1,4 +1,5 @@
 import sys
+import math
 
 import maya.OpenMaya as om
 import maya.OpenMayaMPx as omx
@@ -15,14 +16,47 @@ class SoftIkConstraint(omx.MPxConstraint):
     
     # TODO: comp
     def compute(self, plug, dataBlock):
-        print "compute called on:", plug.name()
         if plug in (self.constraintTranslate,
                     self.constraintTranslateX,
                     self.constraintTranslateY,
                     self.constraintTranslateZ):
-            pass
+            # First, get the softRatio...
+            softRatio = dataBlock.inputValue(self.softRatio).asDouble()
+            if softRatio == 0:
+                return 
+            
+            # Compute start/target world positions
+            startWorldPos = self._getWorldPos(self.startJointWorldMatrix,
+                                         dataBlock)
+            targetWorldPos= self._getWorldPos(self.targetWorldMatrix,
+                                         dataBlock)
+            targetDist = dist( startWorldPos, targetWorldPos )
+            
+            
+            chainLength = dataBlock.inputValue(self.chainLength).asDistance().value()
+            if softRatio == 0:
+                finalDistance = chainLength
+            else:
+                softDist = softRatio * chainLength
+                hardDist = chainLength - softDist
+                finalDistance = self._getFinalDist(targetDist, softDist, hardDist)
+            finalRatio = finalDistance / targetDistance
+            
+            finalWorldPos = []
+            for startCoord, targetCoord in zip(startWorldPos, targetWorldPos):
+                finalWorldPos.append( (1 - finalRatio) * startCoord +
+                                      finalRatio * targetCoord          )
         else:
             return om.kUnknownParameter
+        
+    def _getWorldPos(self, worldMatrixPlug, dataBlock):
+        if worldMatrixPlug == self.startJointWorldMatrix:
+            return (0, 0, 0)
+        return (10, 0, 0)
+
+    def _getDistanceRatio(self, dataBlock):
+        
+        
     
     @classmethod
     def creator(cls):
@@ -42,7 +76,7 @@ class SoftIkConstraint(omx.MPxConstraint):
         cls.softRatio = numAttr.create("softRatio", "sr",
                                        om.MFnNumericData.kDouble, .05)
         cls.addAttribute(cls.softRatio)
-        unitAttr.setKeyable(1)
+        numAttr.setKeyable(1)
         
         # startJointWorldMatrix
         typedAttr = om.MFnTypedAttribute()
@@ -50,6 +84,13 @@ class SoftIkConstraint(omx.MPxConstraint):
             typedAttr.create("startJointWorldMatrix", "sjwm",
                              om.MFnData.kMatrix)
         cls.addAttribute(cls.startJointWorldMatrix)
+        
+        # targetWorldMatrix
+        typedAttr = om.MFnTypedAttribute()
+        cls.targetWorldMatrix = \
+            typedAttr.create("targetWorldMatrix", "twm",
+                             om.MFnData.kMatrix)
+        cls.addAttribute(cls.targetWorldMatrix)
         
         # constraintParentInverseMatrix
         typedAttr = om.MFnTypedAttribute()
@@ -84,7 +125,9 @@ class SoftIkConstraint(omx.MPxConstraint):
         cls.addAttribute(cls.constraintTranslate)
         numAttr.setWritable(0)
         
-        for inAttr in (cls.chainLength, cls.startJointWorldMatrix,
+        for inAttr in (cls.chainLength,
+                       cls.startJointWorldMatrix,
+                       cls.targetWorldMatrix,
                        cls.constraintParentInverseMatrix):
             for outAttr in (cls.constraintTranslate,):
                 cls.attributeAffects(inAttr, outAttr)
@@ -108,3 +151,13 @@ def uninitializePlugin(mobject):
     except:
         sys.stderr.write( "Failed to deregister node: %s" % nodeName )
         raise
+    
+    
+#==============================================================================
+# Utility Functions
+#==============================================================================
+def dist(pt1, pt2):
+    sum = 0
+    for v1, v2 in zip(pt1, pt2):
+        sum += ((v1-v2)**2) 
+    return math.sqrt(sum)
