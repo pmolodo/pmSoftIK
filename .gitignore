@@ -1,0 +1,6 @@
+._*
+*.pyc
+*~
+*.weight
+.project
+.pydevproject
