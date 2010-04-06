@@ -16,47 +16,68 @@ class SoftIkConstraint(omx.MPxConstraint):
     
     # TODO: comp
     def compute(self, plug, dataBlock):
-        if plug in (self.constraintTranslate,
-                    self.constraintTranslateX,
-                    self.constraintTranslateY,
-                    self.constraintTranslateZ):
-            # First, get the softRatio...
-            softRatio = dataBlock.inputValue(self.softRatio).asDouble()
-            if softRatio == 0:
-                return 
+        outputAttrs = (self.constraintTranslate,
+                       self.constraintTranslateX,
+                       self.constraintTranslateY,
+                       self.constraintTranslateZ)
+        if plug in outputAttrs:
+            # First, check that we have sufficient information / connections
+            useDefaults = False
+            matrices = {'start':self.startJointWorldMatrix,
+                        'target':self.targetWorldMatrix,
+                        'inverse':self.constraintParentInverseMatrix}
+            for matrixType, attr in matrices.iteritems():
+                data = dataBlock.inputValue(attr).data()
+                if data.isNull():
+                    useDefaults = True
+                    break
+                matrices[matrixType] = om.MFnMatrixData(data)
             
-            # Compute start/target world positions
-            startWorldPos = self._getWorldPos(self.startJointWorldMatrix,
-                                         dataBlock)
-            targetWorldPos= self._getWorldPos(self.targetWorldMatrix,
-                                         dataBlock)
-            targetDist = dist( startWorldPos, targetWorldPos )
-            
-            
-            chainLength = dataBlock.inputValue(self.chainLength).asDistance().value()
-            if softRatio == 0:
-                finalDistance = chainLength
+            if useDefaults:
+                localPos = om.MPoint()
             else:
-                softDist = softRatio * chainLength
-                hardDist = chainLength - softDist
-                finalDistance = self._getFinalDist(targetDist, softDist, hardDist)
-            finalRatio = finalDistance / targetDistance
-            
-            finalWorldPos = []
-            for startCoord, targetCoord in zip(startWorldPos, targetWorldPos):
-                finalWorldPos.append( (1 - finalRatio) * startCoord +
-                                      finalRatio * targetCoord          )
+                # Compute start/target world positions
+                startWorldPos = om.MPoint() * matrices['start'].matrix()
+                targetWorldPos = om.MPoint() * matrices['target'].matrix()
+                targetDist = startWorldPos.distanceTo(targetWorldPos)
+                
+                chainLength = dataBlock.inputValue(self.chainLength).asDistance().value()
+                softRatio = dataBlock.inputValue(self.softRatio).asDouble()
+                if softRatio == 0:
+                    finalDistance = chainLength
+                else:
+                    softDist = softRatio * chainLength
+                    hardDist = chainLength - softDist
+                    finalDistance = self._getFinalDist(targetDist, softDist, hardDist)
+                finalRatio = finalDistance / targetDist
+                
+                # Yay API - we can only add an MVector to an MPoint
+                finalWorldPos = (        (startWorldPos  * (1 - finalRatio)) + 
+                                  om.MVector(targetWorldPos * finalRatio))
+                localPos = finalWorldPos * matrices['inverse'].matrix()
+                
+            for dir in 'XYZ':
+                attr = getattr(self, 'constraintTranslate' + dir)
+                outHandle = dataBlock.outputValue(attr)
+                outHandle.setMDistance(om.MDistance(getattr(localPos, dir.lower())))
+                dataBlock.setClean(attr)
+            dataBlock.setClean(self.constraintTranslate)
         else:
             return om.kUnknownParameter
-        
-    def _getWorldPos(self, worldMatrixPlug, dataBlock):
-        if worldMatrixPlug == self.startJointWorldMatrix:
-            return (0, 0, 0)
-        return (10, 0, 0)
 
-    def _getDistanceRatio(self, dataBlock):
+
+    def _getFinalDist(self, x, softDist, hardDist):
+        if x <= hardDist:
+            return x
         
+        # from  http://www.xsi-blog.com/userContent/anicholas/softik/Equation.gif
+        # ...
+        #                     hardDist - x
+        #                     ------------
+        #                        softDist
+        #  softDist * ( 1 - e              ) + hardDist
         
+        return softDist * (1 - math.exp( (hardDist - x) / softDist )) + hardDist
     
     @classmethod
     def creator(cls):
@@ -74,7 +95,7 @@ class SoftIkConstraint(omx.MPxConstraint):
         # softRatio
         numAttr = om.MFnNumericAttribute()
         cls.softRatio = numAttr.create("softRatio", "sr",
-                                       om.MFnNumericData.kDouble, .05)
+                                       om.MFnNumericData.kDouble, .1)
         cls.addAttribute(cls.softRatio)
         numAttr.setKeyable(1)
         
@@ -126,6 +147,7 @@ class SoftIkConstraint(omx.MPxConstraint):
         numAttr.setWritable(0)
         
         for inAttr in (cls.chainLength,
+                       cls.softRatio,
                        cls.startJointWorldMatrix,
                        cls.targetWorldMatrix,
                        cls.constraintParentInverseMatrix):
@@ -151,13 +173,3 @@ def uninitializePlugin(mobject):
     except:
         sys.stderr.write( "Failed to deregister node: %s" % nodeName )
         raise
-    
-    
-#==============================================================================
-# Utility Functions
-#==============================================================================
-def dist(pt1, pt2):
-    sum = 0
-    for v1, v2 in zip(pt1, pt2):
-        sum += ((v1-v2)**2) 
-    return math.sqrt(sum)
