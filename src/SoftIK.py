@@ -44,15 +44,15 @@ class SoftIkConstraint(omx.MPxConstraint):
                 chainLength = dataBlock.inputValue(self.chainLength).asDistance().value()
                 softRatio = dataBlock.inputValue(self.softRatio).asDouble()
                 if softRatio == 0:
-                    finalDistance = chainLength
+                    finalRatio = 1.0
                 else:
                     softDist = softRatio * chainLength
                     hardDist = chainLength - softDist
                     finalDistance = self._getFinalDist(targetDist, softDist, hardDist)
-                finalRatio = finalDistance / targetDist
+                    finalRatio = finalDistance / targetDist
                 
                 # Yay API - we can only add an MVector to an MPoint
-                finalWorldPos = (        (startWorldPos  * (1 - finalRatio)) + 
+                finalWorldPos = (        (startWorldPos  * (1.0 - finalRatio)) + 
                                   om.MVector(targetWorldPos * finalRatio))
                 localPos = finalWorldPos * matrices['inverse'].matrix()
                 
