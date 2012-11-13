@@ -11,8 +11,8 @@ However, it seems that a few people have stumbled across this and asked how to
 use it, so I decided to provide a basic example showing how to use it.  If you
 don't know basic scripting, or can't follow the example, then move on... this
 is NOT a complete end-user package.  (There's no command to create/setup a
-SoftIk constraint... though you could easily make one from the provided
-example...)
+SoftIk constraint... though you could certainly make one using the provided
+example as a guide...)
 
 First, you'll need to install this script somewhere in your Maya plugin path.
 Look at the official maya docs if you need help doing this.
