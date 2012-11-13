@@ -14,8 +14,9 @@ is NOT a complete end-user package.  (There's no command to create/setup a
 SoftIk constraint... though you could certainly make one using the provided
 example as a guide...)
 
-First, you'll need to install this script somewhere in your Maya plugin path.
-Look at the official maya docs if you need help doing this.
+If you still want to try it out, though, you'll need to install this script
+somewhere in your Maya plugin path. Look at the official maya docs if you need
+help doing this.
 
 Then, try running this code in a python script editor:
 
