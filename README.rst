@@ -20,10 +20,10 @@ Then, try running this code in a python script editor::
 
     pm.newFile(f=1)
     
-    j1 = pm.joint( p=(0, 0, 0) )
-    j2 = pm.joint( p=(4, 0, 0)  )
-    j3 = pm.joint( p=(4, 0, 4)  )
-    ikHandle = pm.ikHandle( sj=j1, ee=j3)[0]
+    j1 = pm.joint(p=(0, 0, 0))
+    j2 = pm.joint(p=(4, 0, 0))
+    j3 = pm.joint(p=(4, 0, 4))
+    ikHandle = pm.ikHandle(sj=j1, ee=j3)[0]
     handleParent = pm.group()
     cube = pm.polyCube()[0]
     cube.translate.set(4,0,4)
