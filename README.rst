@@ -12,7 +12,7 @@ example...)
 First, you'll need to install this script somewhere in your Maya plugin path.
 Look at the official maya docs if you need help doing this.
 
-Then, try running this code in a python script editor
+Then, try running this code in a python script editor:
 
 .. code:: python
 
