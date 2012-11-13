@@ -15,7 +15,11 @@ Look at the official maya docs if you need help doing this.
 Then, try running this code in a python script editor::
 
     import pymel.core as pm
+    if not pm.pluginInfo('pmSoftIK.py', q=1, loaded=1):
+        pm.loadPlugin('pmSoftIK.py')
+
     pm.newFile(f=1)
+    
     j1 = pm.joint( p=(0, 0, 0) )
     j2 = pm.joint( p=(4, 0, 0)  )
     j3 = pm.joint( p=(4, 0, 4)  )
