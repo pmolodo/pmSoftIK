@@ -32,9 +32,9 @@ Then, try running this code in a python script editor::
 
 
     # Set the joint-chain-length
-    # This bit is a bit of hack... really, I should have a command that computes this distance,
-    # or have the node itself dynamically figure it out.  I don't though. You'll have to figure
-    # out the total joint chain length yourself...
+    # This bit is a bit of hack... really, I should have a command that computes
+    # this distance, or have the node itself dynamically figure it out.  I don't
+    # though. You'll have to figure out the total joint chain length yourself...
     softConstraint.chainLength.set(8)
 
 
@@ -52,5 +52,6 @@ Then, try running this code in a python script editor::
     cube.softIkRatio.connect(softConstraint.softRatio)
     cube.softIkRatio.set(.2)
 
-Now, just move the cube around, and see how the ik handle / joint chain responds.
-Also, try changing the softIkRatio on the cube to see how it affects the behavior...
+Now, just move the cube around, and see how the ik handle / joint chain
+responds. Also, try changing the softIkRatio on the cube to see how it affects
+the behavior...
