@@ -1,3 +1,8 @@
+This is a test implementation in maya of the soft IK explained by Andy Nicholas,
+in http://www.xsi-blog.com/?p=108.  It is implemented as a maya constraint,
+created by a maya python plugin.  It's intended is is to set things up so that
+the ik handle constrained to the animation control...
+
 This code is totally unsupported and provided as is.  It wasn't even really
 intended for public consumption - it was a small test I made on my own that I
 hosted on github as an easy way to coordinate work at home and at school.
