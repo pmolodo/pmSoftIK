@@ -30,12 +30,15 @@ Then, try running this code in a python script editor::
 
     softConstraint = pm.createNode('pmSoftIkConstraint')
 
+
+    # Set the joint-chain-length
     # This bit is a bit of hack... really, I should have a command that computes this distance,
     # or have the node itself dynamically figure it out.  I don't though. You'll have to figure
     # out the total joint chain length yourself...
     softConstraint.chainLength.set(8)
 
 
+    # Now make all the required constraint connections..
     j1.worldMatrix[0].connect(softConstraint.startJointWorldMatrix)
     cube.worldMatrix[0].connect(softConstraint.targetWorldMatrix)
     ikHandle.parentInverseMatrix[0].connect(softConstraint.constraintParentInverseMatrix)
@@ -43,6 +46,8 @@ Then, try running this code in a python script editor::
     softConstraint.constraintTranslateY.connect(ikHandle.translateY)
     softConstraint.constraintTranslateZ.connect(ikHandle.translateZ)
 
+    # ...and, for convenience, and an attribute onto our cube control for
+    # playing with the softRatio
     cube.addAttr('softIkRatio', keyable=True, hidden=False)
     cube.softIkRatio.connect(softConstraint.softRatio)
     cube.softIkRatio.set(.2)
