@@ -38,7 +38,7 @@ Then, try running this code in a python script editor::
 
     j1.worldMatrix[0].connect(softConstraint.startJointWorldMatrix)
     cube.worldMatrix[0].connect(softConstraint.targetWorldMatrix)
-    handleParent.parentInverseMatrix[0].connect(softConstraint.constraintParentInverseMatrix)
+    ikHandle.parentInverseMatrix[0].connect(softConstraint.constraintParentInverseMatrix)
     softConstraint.constraintTranslateX.connect(ikHandle.translateX)
     softConstraint.constraintTranslateY.connect(ikHandle.translateY)
     softConstraint.constraintTranslateZ.connect(ikHandle.translateZ)
