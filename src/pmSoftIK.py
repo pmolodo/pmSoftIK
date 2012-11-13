@@ -1,3 +1,10 @@
+'''Test implementation in maya of the soft IK explained by Andy Nicholas,
+in http://www.xsi-blog.com/?p=108
+
+Implemented as a maya constraint - intended so that the ik handle is
+constrained to the animation control...
+'''
+
 import sys
 import math
 
